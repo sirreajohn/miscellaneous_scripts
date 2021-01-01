@@ -110,12 +110,15 @@ sns.heatmap(cm, annot = True,fmt = "g")
 
 model.save('/content/drive/MyDrive/Colab Notebooks/trained_models/mnist/fashion_mnist_cnn_100epochs.h5')
 
+#------------------------------------------------------------------ lets do some thing different and unconventional and compare results-------------------------------------
+
 """# experiemnts (1-1-21)"""
 
 from tensorflow.keras.layers import Dense,Flatten,Conv2D,Input,Dropout,MaxPool2D
 from tensorflow.keras.models import Model,load_model
 from xgboost import XGBClassifier
 from sklearn.ensemble import RandomForestClassifier
+#--------------------------------convolution output pipeline to other types rather than classification ANN-------------------------------------
 
 i = Input(shape = x_train[0].shape)
 conv1 = Conv2D(24, (3,3) ,padding = "valid", activation = "relu")(i)
@@ -127,9 +130,11 @@ pool3 = MaxPool2D(strides = (2,2))(conv3)
 flat = Flatten()(pool3)
 # stop till here for feature maps the next lines are for LOGISTIC regression
 
+#-----------------------------logistic regression in ANN--------------- """closed at 89 val acc"""
 logistic = Dense(500,activation = "sigmoid")(flat)
 out = Dense(k,activation = "softmax")(logistic)
 model_2 = Model(i,out)
+#----------------------------------------------------------------------
 
 model_2.compile(optimizer= "adam", loss = "sparse_categorical_crossentropy", metrics= ["accuracy"])
 model_2.fit(x_train,y_train, epochs = 30, batch_size = 28, validation_data=(x_test,y_test))
@@ -138,27 +143,27 @@ x_train_flat = model_2.predict(x_train)
 x_test_flat = model_2.predict(x_test)
 
 x_train_flat[0].shape
-
+#------------------------------------------XG boost--------------------------------------------------------------
 LR = XGBClassifier(objective='multi:softmax', num_class = k, n_estimators=300, random_state=177013)
 LR.fit(x_train_flat,y_train)
 y_pred_LR = LR.predict(x_test_flat)
 
+#------------------------------------------ Random forest classifier-------------------------------
 random_forest = RandomForestClassifier(n_estimators = 300, random_state = 177013)
 random_forest.fit(x_train_flat,y_train)
 y_pred_RF = random_forest.predict(x_test_flat)
 
-y_pred_RF
 
 cm_2 = confusion_matrix(y_test,y_pred_RF)
 plt.figure(figsize = (8,8))
 sns.heatmap(cm_2, annot = True,fmt = "g")
 
 from sklearn.metrics import classification_report
-print(classification_report(y_test,y_pred_RF))
+print(classification_report(y_test,y_pred_RF)) #-----------closed at 80%
 
 cm_3 = confusion_matrix(y_test,y_pred_LR)
 plt.figure(figsize = (8,8))
 sns.heatmap(cm_3, annot = True,fmt = "g")
 
-print(classification_report(y_test,y_pred_LR))
+print(classification_report(y_test,y_pred_LR)) #---------------------closed at 83%
 
